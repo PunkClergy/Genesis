@@ -17,6 +17,9 @@
     "url": ""
   },
   "permissions": {
+    "Maps": {
+      "coordType": "gcj02"
+    },
     "UniNView": {
       "description": "UniNView原生渲染"
     }
@@ -79,6 +82,11 @@
           "ks": {},
           "ks-content": {},
           "gm": {}
+        },
+        "maps": {
+          "tencent": {
+            "key": "W66BZ-ADBC3-COB3F-YWZG4-MAVRO-IJBIM"
+          }
         },
         "audio": {
           "mp3": {

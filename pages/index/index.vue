@@ -129,16 +129,20 @@
 						icon: '/static/weixiang.png'
 					},
 					{
-						text: '升窗'
+						text: '升窗',
+						icon: '/static/sc.png'
 					},
 					{
-						text: '降窗'
+						text: '降窗',
+						icon: '/static/jc.png'
 					},
 					{
-						text: '左中门'
-					},
+						text: '左中门',
+						icon: '/static/zm.png'
+					}, 
 					{
-						text: '右中门'
+						text: '右中门',
+						icon: '/static/ym.png'
 					},
 				],
 				itemsPerPage: 4,

@@ -17,6 +17,9 @@
     "url": ""
   },
   "permissions": {
+    "Maps": {
+      "coordType": "gcj02"
+    },
     "UniNView": {
       "description": "UniNView原生渲染"
     }
@@ -80,6 +83,12 @@
           "ks-content": {},
           "gm": {}
         },
+        "maps": {
+          "tencent": {
+            "key": "W66BZ-ADBC3-COB3F-YWZG4-MAVRO-IJBIM"
+          }
+        },
+        "geolocation": {},
         "audio": {
           "mp3": {
             "description": "Android平台录音支持MP3格式文件"
