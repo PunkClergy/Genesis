@@ -1,0 +1,112 @@
+
+
+	.control_container {
+		display: flex;
+		gap: 20px;
+		flex-direction: column;
+		padding: 15px;
+		height: 100vh;
+		background: linear-gradient(to bottom, #E6F1F5, #F0F7F9, #FCF8F2);
+	}
+
+	.control_title {
+		display: flex;
+		gap: 5px;
+		flex-direction: column;
+		margin-top: 80px;
+	}
+
+	.control_title .header {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.control_title .title {
+		color: #333;
+		font-size: 24px;
+	}
+
+	.control_title .subtitle {
+		color: #666;
+		font-size: 16px;
+	}
+
+	.control_title .location-divider {
+		font-size: 15px;
+	}
+
+	.control_title .icon {
+		width: 26px;
+		height: 26px;
+	}
+
+	.control_title .icons-container {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 10px;
+	}
+
+
+
+
+	.control_quick-entry {
+		position: relative;
+		background-color: #fff;
+		border-radius: 4px;
+	}
+
+	.entry-swiper {
+		height: 200rpx;
+		/* 根据内容调整高度 */
+		width: 100%;
+	}
+
+	.entry-page {
+		display: flex;
+		align-items: center;
+		padding-left: 20rpx;
+		/* 使元素靠左对齐 */
+		box-sizing: border-box;
+		height: 100%;
+		/* 确保 entry-page 占满 swiper 的高度 */
+	}
+
+	.entry-item {
+		width: 23%;
+		/* 调整宽度以适应每行四个图标 */
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		/* 上下居中 */
+		margin-right: 20rpx;
+		height: 160rpx;
+		/* 设置固定高度，配合 justify-content: center 实现上下居中 */
+	}
+
+	.entry-icon {
+		width: 80rpx;
+		height: 80rpx;
+		margin-bottom: 10rpx;
+	}
+
+	.entry-text {
+		font-size: 24rpx;
+		color: #333;
+		text-align: center;
+	}
+
+	/* 自定义指示点 */
+	.custom-indicator {
+		position: absolute;
+		bottom: 4rpx;
+		right: 10rpx;
+		padding: 3rpx 10rpx;
+		background-color: rgba(0, 0, 0, .3);
+		color: white;
+		border-radius: 20rpx;
+		font-size: 24rpx;
+	}

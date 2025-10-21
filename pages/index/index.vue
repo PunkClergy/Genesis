@@ -1,1373 +1,443 @@
 <template>
-	<view class="container" :style="{ height: `${safeScreenHeight}px` }">
-		<CustomNavBar title="手机钥匙控车" />
-		
-		<!-- 车辆信息卡片 -->
-		<view class="vehicle-card" :style="'margin-top: ' + (navbarTotalHeight) + 'px;'">
-			<!-- 车牌与提示信息 -->
-			<view class="license-plate-section">
-				<view class="license-plate-container">
-					<view class="vehicle-info">
-						<text class="license-plate" v-if="bluetoothData.platenumber">{{ bluetoothData.platenumber }}</text>
-						<text class="license-plate bind-vehicle" @tap="handleBindVechi" v-else>请绑定车辆</text>
-						<view class="vehicle-status">
-							<view class="status-dot" :class="connectionState === '已连接' ? 'connected' : 'disconnected'"></view>
-							<text class="status-text">{{ connectionState }}</text>
-						</view>
-					</view>
+	<section class="control_container" @touchmove.prevent>
+		<!-- 头部内容 -->
+		<view class="control_title">
+			<view class="header">
+				<view class="title">
+					雅迪王
+					<text style="font-size: 16px;">京AYU76G</text>
+				</view>
+				<view class="icons-container">
+					<image src="/static/scan-code.png" class="icon" />
+					<image src="/static/set_up.png" class="icon" />
 				</view>
 			</view>
 
-			<!-- 车辆图片 -->
-			<view class="vehicle-image-container">
-				<image class="vehicle-image" src="https://k3a.wiselink.net.cn/img/app/blue/privateCar.png" mode="aspectFit"></image>
-				<view class="vehicle-overlay">
-					<view class="battery-status" @tap="handleVoltage">
-					
-						<image :src="'https://k3a.wiselink.net.cn/img/app/blue/battery_' + voltage_image + '.png'"
-							class="battery-icon" />
-						<text class="battery-text" v-if="parsedData.electric">{{ parsedData.electric || 100 }}%</text>
-						<text class="battery-text" v-else>--</text>
-					</view>
-					
-					<view class="bluetooth-container">
-					<view :class="'bluetooth-status ' + (connectionState == '已连接' ? 'connected' : 'disconnected')"
-							@tap="handleBlueToothState">
-							<icon v-if="connectionState == '已连接'" type="success" size="16" color="#2d8cf0"></icon>
-							<view v-else class="loading-icon"></view>
-							<text>{{ connectionState == '已连接' ? '蓝牙已连接' : '蓝牙已断开' }}</text>
-						</view>
-					</view>
-				</view>
-			</view>
-
-			<!-- 模式选择器 -->
-			<view class="mode-section" v-if="!netWork">
-				<view class="GY-sensor-mode-wrapper" @tap="toggleSensorMode">
-					<view
-						:class="'GY-sensor-mode ' + (parsedData.induction == '感应模式' && connectionState == '已连接' ? 'on' : 'off')">
-						<view
-							:class="'GY-ripple ' + (parsedData.induction == '感应模式' && connectionState == '已连接' ? 'active' : '')">
-						</view>
-						<view class="GY-icon"></view>
-						<view class="GY-label"
-							:style="'color:' + (parsedData.induction == '感应模式' && connectionState == '已连接' ? '#fff' : '#333') + ';'">
-							<text>{{ parsedData.induction == '感应模式' && connectionState == '已连接' ? '感应模式已开启' : '感应模式已关闭' }}</text>
-							<image :src="
-                                    parsedData.induction == '感应模式' && connectionState == '已连接'
-                                        ? 'https://k3a.wiselink.net.cn/img/app/blue/arrow.png'
-                                        : 'https://k3a.wiselink.net.cn/img/app/blue/arrow_01.png'
-                                " style="width: 37rpx; height: 37rpx" />
-						</view>
-					</view>
-				</view>
-			</view>
-			
-			<view class="GY-grant" v-else>
-				<view class="grant-title">授权使用时间</view>
-				<view class="grant-period">{{ bluetoothData.startDate }} 至 {{ bluetoothData.endDate }}</view>
+			<view class="subtitle">
+				<text>已关锁</text>
+				<text class="location-divider">丨</text>
+				<text>北京市丰台区海鹰大厦</text>
 			</view>
 		</view>
+		<!-- 地图内容 -->
+		<view class="control_car_picture">
+			<map id="myMap" :scale="20" class="map" :latitude="latitude" :longitude="longitude" :markers="markers"
+				show-location @regionchange="onRegionChange">
+				<cover-view class="map_control">
+					<cover-image src="/static/bluetooth.png" class="map_image"></cover-image>
+				</cover-view>
+			</map>
+		</view>
+		<!-- 操控区域内容 -->
+		<view class="control_quick-entry">
+			<!-- swiper 组件 -->
+			<swiper class="entry-swiper" :indicator-dots="false" indicator-color="rgba(0, 0, 0, .3)"
+				indicator-active-color="#ffffff" :autoplay="false" :interval="3000" :duration="500" :circular="false"
+				:vertical="false" @change="onSwiperChange">
+				<!-- 动态生成 swiper-item -->
+				<swiper-item v-for="(page, pageIndex) in pages" :key="pageIndex">
+					<view class="entry-page">
+						<view v-for="(item, index) in page" :key="index" class="entry-item" @click="handleClick(item)">
+							<image :src="item.icon" class="entry-icon" mode="aspectFit" />
+							<text class="entry-text">{{ item.text }}</text>
+						</view>
+					</view>
+				</swiper-item>
+			</swiper>
+			<view class="custom-indicator">{{ current + 1 }} / {{ pages.length }}</view>
+		</view>
 
-		<!-- 控制功能区 - 每行3个大按钮 -->
-		<view class="control-section">
-			<view class="control-title">
-				<view class="title-bold">手动操作</view>
-				<view class="more-functions" @tap="handleToConfigure">
-					<text>更多钥匙功能</text>
-					<image src="/static/privateCar/right_1.png" />
+		<!-- 信息中心 -->
+		<view class="control_info-root">
+			<!-- 左侧卡片 -->
+			<view class="control_info-left-card">
+				<!-- 左上角 -->
+				<view class="control_info-corner control_info-top-left">
+					<text class="control_info-date">29天前</text>
+					<text class="control_info-label">上次充电</text>
+				</view>
+
+				<!-- 右上角 -->
+				<view class="control_info-corner control_info-top-right">
+					<text class="control_info-battery-value">
+						72<text class="control_info-battery-unit">%</text>
+					</text>
+				</view>
+
+				<!-- 左下角 -->
+				<view class="control_info-corner control_info-bottom-left">
+					<text class="control_info-label">21天</text>
+					<text class="control_info-date">已用天数</text>
+				</view>
+
+				<!-- 右下角 -->
+				<view class="control_info-corner control_info-bottom-right">
+					<text class="control_info-label">10天</text>
+					<text class="control_info-date">可用天数</text>
 				</view>
 			</view>
-			<view class="control-grid">
-				<view class="control-item" v-for="(item, index) in controlItems" :key="index">
-					<block v-if="item.enabled">
-						<view class="control-icon" @tap="parseEventDynamicCode($event, item.evt)" :data-id="item.id">
-							<image
-								:src="item.id === 1 || item.id === 2 ? ((item.id === 1 ? parsedData.lock : !parsedData.lock) ? item.ative : item.icon) : item.icon"
-								class="control-icon-image"></image>
-						</view>
-						<text class="control-name">{{ item.name }}</text>
-					</block>
+
+			<!-- 右侧两个区域 -->
+			<view class="control_info-right-container">
+				<view class="control_info-right-item">
+					<image src="/static/gy.png" class="control_info-icon"></image>
+					<view class="control_car_text">
+						<text class="control_info-title">感应模式</text>
+						<text class="control_info-status">未开启</text>
+					</view>
+				</view>
+
+				<view class="control_info-right-item">
+					<image src="/static/clzx.png" class="control_info-icon"></image>
+					<text class="control_info-title">车辆中心</text>
 				</view>
 			</view>
 		</view>
-	</view>
+	</section>
 </template>
 
 <script>
-	import bleKeyManager from '@/utils/BleKeyFun-utils-single.js'
-	import {
-		u_getCarBluetoothKeyByCode,
-		u_paivatecarList,
-		u_paivatesendInfo,
-		u_paivateuploadLog
-	} from '@/api'
-	import CustomNavBar from "@/components/custom-header/index.vue";
-	import {
-		info_screen
-	} from '@/utils/scheme/screen.js'
-	// 操作区指令封装常量
-	const VehicleCommand = {
-		UNLOCK: 3, //开锁
-		LOCK: 4, //关锁
-		OPEN_TRUNK: 5, //尾箱
-		FIND_CAR: 6, //寻车
-		CONTROL_WINDOW: 7, //操作车窗
-	};
-	const WindowAction = {
-		RAISE: 3, //升窗
-		LOWER: 4, //降窗
-	};
 	export default {
-		components: {
-			CustomNavBar
-		},
 		data() {
-			// 图片资源基础路径
-			const baseUrl = 'https://k3a.wiselink.net.cn/img/app/blue';
 			return {
-				screenInfo: {}, // 屏幕信息对象
-				// 设备唯一编号
-				deviceIDC: '932505100228',
-				// 通信密钥
-				orgKey: [51, 71, 1, 130, 52, 51],
-				// 原始密钥（用于跳转）
-				orgKeyOld: '',
-
-				// 蓝牙连接状态：未连接 / 已连接
-				connectionState: '未连接',
-				// 当前连接ID
-				connectionID: '',
-				// 是否点击蓝牙状态区域
-				blue_tooth_state: false,
-
-				// 解析的设备数据
-				parsedData: {
-					electric: '', // 电量
-					induction: '', // 感应模式
-					lock: '' // 锁状态
-				},
-				// 电池图标等级（100/75/50）
-				voltage_image: '100',
-				// 是否点击电池区域
-				voltage_state: false,
-
-				// 操作按钮列表
-				controlItems: [{
-						id: 1,
-						name: '开锁',
-						enabled: true,
-						icon: `${baseUrl}/unlock_off.png`,
-						ative: `${baseUrl}/unlock_on.png`,
-						evt: 'handleUnlock'
-					},
-					{
-						id: 2,
-						name: '关锁',
-						enabled: true,
-						icon: `${baseUrl}/lock_off.png`,
-						ative: `${baseUrl}/lock_on.png`,
-						evt: 'handleLock'
-					},
-					{
-						id: 3,
-						name: '尾箱',
-						enabled: true,
-						icon: `${baseUrl}/box_off.png`,
-						evt: 'handleOpenTrunk'
-					},
-					{
-						id: 4,
-						name: '寻车',
-						enabled: true,
-						icon: `${baseUrl}/search_off.png`,
-						evt: 'handleFindCar'
-					},
-					{
-						id: 5,
-						name: '升窗',
-						enabled: true,
-						icon: `${baseUrl}/search_off.png`,
-						evt: 'handleRaiseTheWindow'
-					},
-					{
-						id: 6,
-						name: '降窗',
-						enabled: true,
-						icon: `${baseUrl}/search_off.png`,
-						evt: 'handleLowerTheWindow'
+				latitude: 39.90469,
+				longitude: 116.40717,
+				markers: [{
+					id: 1,
+					latitude: 39.90469,
+					longitude: 116.40717,
+					title: '天安门',
+					callout: {
+						content: '这里是天安门',
+						display: 'ALWAYS'
 					}
+				}],
+				entries: [{
+						text: '开锁',
+						icon: '/static/lock.png'
+					},
+					{
+						text: '关锁',
+						icon: '/static/unlock.png'
+					},
+					{
+						text: '寻车',
+						icon: '/static/xunche.png'
+					},
+					{
+						text: '尾箱',
+						icon: '/static/weixiang.png'
+					},
+					{
+						text: '升窗'
+					},
+					{
+						text: '降窗'
+					},
+					{
+						text: '左中门'
+					},
+					{
+						text: '右中门'
+					},
 				],
-
-				// 指令日志记录
-				logs: [],
-
-				// 手机系统信息
-				deviceInfo: {},
-
-				// 页面传参
-				options: {},
-
-				// 是否为分享用户
-				netWork: false,
-
-				// 轮询定时器ID
-				pageInterval: 0,
-
-				// 当前车辆信息
-				bluetoothData: {
-					platenumber: '', // 车牌号
-					startDate: '', // 授权开始时间
-					endDate: '' // 授权结束时间
-				}
+				itemsPerPage: 4,
+				current: 0
 			};
 		},
-		onLoad(options) {
-			// 保存入参（仅在后续需要时才赋值）
-			this.options = options;
-			// 初始化配置缓存（假设是同步）
-			this.initToConfigureCache();
-			// 获取系统信息（适配屏幕等）
-			this.handleSystemInfo();
-		},
-		onShow: function() {
-			// 获取设备屏幕信息
-			this.initialScreenInfo()
-			// 开始蓝牙连接流程
-			this.handleStart();
-			// 启动连接状态轮询
-			this.startConnectionStatusPolling();
-		},
-		onHide: function() {
-			this.cleanupResources();
-		},
-		onUnload: function() {
-			this.cleanupResources();
+		onLoad() {
+			this.getLocation();
 		},
 		computed: {
-			// 状态栏高度
-			statusBarHeight() {
-				return this.screenInfo.statusBarHeight || 0;
-			},
-			// 导航栏高度
-			navBarHeight() {
-				return this.screenInfo.platform === 'ios' ? 49 : 44;
-			},
-			// 导航栏总高度（状态栏+导航栏）
-			navbarTotalHeight() {
-				return this.statusBarHeight + this.navBarHeight;
-			},
-			// 安全区域高度
-			safeScreenHeight() {
-				return this.screenInfo.screenHeight || 667;
+			pages() {
+				const pages = [];
+				const total = this.entries.length;
+				for (let i = 0; i < total; i += this.itemsPerPage) {
+					pages.push(this.entries.slice(i, i + this.itemsPerPage));
+				}
+				return pages;
 			}
 		},
-
 		methods: {
-			// 获取屏幕信息
-			async initialScreenInfo() {
-				try {
-					this.screenInfo = await info_screen();
-				} catch (error) {
-					uni.showToast({
-						title: '设备信息获取失败',
-						icon: 'none'
-					});
-				}
+			onSwiperChange(e) {
+				this.current = e.detail.current;
 			},
-			// 统一清理页面资源
-			cleanupResources() {
-				// 停止定时器（安全清除）
-				if (this.pageInterval) {
-					clearInterval(this.pageInterval);
-					this.pageInterval = null;
-				}
-				// 重置连接状态
-				this.connectionState = '未连接';
-				this.connectionID = '';
-				this.parsedData = {};
-				// 关闭屏幕常亮
-				uni.setKeepScreenOn({
-					keepScreenOn: false
-				});
-				// 延迟，释放蓝牙资源
-				setTimeout(() => {
-					bleKeyManager.releaseBle();
-				}, 500);
-			},
-			// 手动操作区执行事件
-			handleEvent(eventType) {
-				const actions = {
-					handleUnlock: () => {
-						this.sendVehicleCommandFun(VehicleCommand.UNLOCK, '');
-					},
-					handleLock: () => {
-						this.sendVehicleCommandFun(VehicleCommand.LOCK, '');
-					},
-					handleOpenTrunk: () => {
-						this.sendVehicleCommandFun(VehicleCommand.OPEN_TRUNK, '');
-					},
-					handleFindCar: () => {
-						this.sendVehicleCommandFun(VehicleCommand.FIND_CAR, '');
-					},
-					handleRaiseTheWindow: () => {
-						this.sendVehicleCommandFun(VehicleCommand.CONTROL_WINDOW, WindowAction.RAISE);
-					},
-					handleLowerTheWindow: () => {
-						this.sendVehicleCommandFun(VehicleCommand.CONTROL_WINDOW, WindowAction.LOWER);
-					},
-				};
-
-				const action = actions[eventType];
-				if (typeof action === 'function') {
-					action();
-				}
-			},
-			// 点击操作手动区事件
-			parseEventDynamicCode($, evt) {
-				this.handleEvent(evt);
-			},
-			// 切换感应模式
-			toggleSensorMode() {
-				const induction = this.parsedData.induction;
-				const isManualInduction = !induction || induction === '手动模式';
-				if (this?.bluetoothData?.platenumber) {
-					if (!isManualInduction) {
-						// 此时为感应模式，可直接切换手动模式
-						uni.showModal({
-							title: '提示',
-							content: '确认关闭感应模式?',
-							complete: (res) => {
-								if (res.confirm) {
-									this.btnCmdSend(58, [0]);
-								}
-							}
-						});
-						return;
-					}
-					if (this.parsedData.induction != '感应模式') {
-						uni.showModal({
-							title: '提示',
-							content: '请到开通设定-功能设置处完善设置',
-							complete: (res) => {
-								if (res.confirm) {
-									uni.redirectTo({
-										url: '/pages/listOfPrivateCars/list/index?tabs=3'
-									});
-								}
-							}
-						});
-					}
-				} else {
-					uni.showModal({
-						title: '提示',
-						content: '请先开通设定再到开通设定-功能设置处完善设置',
-						confirmText: '立即开通',
-						success: (res) => {
-							if (res.confirm) {
-								uni.redirectTo({
-									url: '/pages/listOfPrivateCars/list/index'
-								});
-							}
-						}
-					});
-				}
-			},
-
-			// 获取设备信息
-			handleSystemInfo() {
-				uni.getSystemInfo({
+			// 获取当前位置
+			getLocation() {
+				uni.getLocation({
+					type: 'gcj02', // 返回国测局坐标（可用于腾讯地图、高德等）
 					success: (res) => {
-						const {
-							brand,
-							model,
-							system,
-							platform,
-							screenWidth,
-							screenHeight,
-							pixelRatio,
-							statusBarHeight
-						} = res;
-						this.deviceInfo = {
-							brand,
-							model,
-							system,
-							platform,
-							screenWidth,
-							screenHeight,
-							pixelRatio,
-							statusBarHeight
-						}
-
-						console.log('设备信息:', this.deviceInfo);
+						this.latitude = res.latitude;
+						this.longitude = res.longitude;
+						this.markers[0].latitude = res.latitude;
+						this.markers[0].longitude = res.longitude;
+						this.markers[0].title = '当前位置';
+						this.markers[0].callout.content = '你在这里';
 					},
-					fail: console.error
-				});
-			},
-
-			// 启动连接状态轮询
-			startConnectionStatusPolling() {
-				if (this.pageInterval) {
-					return;
-				}
-				this.pageInterval = setInterval(() => {
-					const isConnected = bleKeyManager.getBLEConnectionState();
-					const connectionID = isConnected ? bleKeyManager.getBLEConnectionID() : '';
-					const displayText = isConnected ? connectionID : '未连接';
-					this.connectionState = isConnected ? '已连接' : '未连接'
-					this.connectionID = connectionID
-				}, 200);
-			},
-
-			// 蓝牙连接处理
-			handleStart() {
-				const that = this;
-				const options = this.options;
-				// 统一处理函数
-				const handleData = (data) => {
-					if (!data) {
-						return;
-					}
-					that.deviceIDC = `${data?.sn}`
-					that.orgKey = that.handleTransformation(data?.bluetoothKey)
-					that.orgKeyOld = data?.bluetoothKey
-					that.bluetoothData = data
-					setTimeout(() => {
-						that.btnStartConnect();
-					}, 100);
-
-
-				};
-				if (options?.scene) {
-					u_getCarBluetoothKeyByCode({
-						code: options?.scene
-					}).then(response => {
-						if (!response?.content) {
-							return;
-						}
-						this.netWork = true
-
-						handleData(response?.content);
-					})
-				} else {
-					// 本地存储处理
-					uni.getStorage({
-						key: 'bluetoothData',
-						success(res) {
-							handleData(res.data);
-						},
-						fail(err) {
-							const param = {
-								page: 1
-							};
-							u_paivatecarList(param).then(response => {
-								uni.setStorageSync('bluetoothData', response?.content?.[0]);
-								handleData(response?.content?.[0]);
-							})
-						}
-					});
-				}
-			},
-
-			// 认证加密算法 passwordSource 原始密码(6字节数组) random 随机数(6字节数组) returns 加密后的密码(8字节数
-			auth_encrypt: function(passwordSource, random) {
-				var passwordEncrypt = [0, 0, 0, 0, 0, 0, 0, 0];
-				for (var i = 0; i < 6; i++) {
-					passwordEncrypt[i] = passwordSource[i] ^ random[i] ^ 255;
-				}
-				return passwordEncrypt;
-			},
-			// 去绑定车辆
-			handleBindVechi() {
-				uni.redirectTo({
-					url: '/pages/listOfPrivateCars/list/index'
-				});
-			},
-
-			// 跳转到详细设置
-			handleSelectJump() {
-				if (this?.bluetoothData?.platenumber) {
-					uni.redirectTo({
-						url: `/pages/privateCar/SettingsDetail/index?sn=${this.deviceIDC}&bluetoothKey=${this.orgKeyOld}`
-					});
-				} else {
-					uni.showModal({
-						title: '提示',
-						content: '请先绑定车辆',
-						confirmText: '立即绑定',
-						success: (res) => {
-							if (res.confirm) {
-								uni.redirectTo({
-									url: '/pages/listOfPrivateCars/list/index'
-								});
-							}
-						}
-					});
-				}
-			},
-
-			// 点击蓝牙出现tips
-			handleBlueToothState() {
-				const _this = this;
-				_this.blue_tooth_state = true
-				setTimeout(() => {
-					_this.blue_tooth_state = false
-				}, 3000); // 3000 是 setTimeout 的延迟时间
-
-
-			},
-
-			// 点击电池出现tips
-			handleVoltage() {
-				const _this = this;
-				_this.voltage_state = true
-
-
-				setTimeout(() => {
-					_this.voltage_state = false
-				}, 3000); // 3000 是 setTimeout 的延迟时间
-
-
-			},
-
-			// 跳转安装手册
-			handleJumpSc() {
-				uni.redirectTo({
-					url: '/pages/privateCar/pdf/index?flag=1'
-				});
-			},
-
-			// 蓝牙状态执行对应操作
-			bluetoothStateMonitor: function(state) {
-				if (bleKeyManager.DEFAULT_BLUETOOTH_STATE.BLUETOOTH_PRE_EXECUTE == state) {
-					//显示加载框
-					//appUtil.showLoading('加载中...');
-				} else if (bleKeyManager.DEFAULT_BLUETOOTH_STATE.BLUETOOTH_ERROR == state) {
-					//异常取消加载框
-					appUtil.hideLoading();
-				} else if (bleKeyManager.DEFAULT_BLUETOOTH_STATE.BLUETOOTH_ADAPTER_UNAVAILABLE == state) {
-					//蓝牙不可用
-					appUtil.showModal('请打开蓝牙', false, function(confirm) {});
-				} else if (bleKeyManager.DEFAULT_BLUETOOTH_STATE.BLUETOOTH_NOT_FOUND == state) {
-					//没有扫描到设备信息
-					appUtil.showModal('没有发现设备', false, function(confirm) {});
-				} else if (bleKeyManager.DEFAULT_BLUETOOTH_STATE.BLUETOOTH_CONNECT_FAILED == state) {
-					//连接失败
-					//appUtil.showModal('蓝牙连接失败', false, function (confirm) { });
-				} else if (bleKeyManager.DEFAULT_BLUETOOTH_STATE.BLUETOOTH_UNSUPPORTED == state) {
-					//不支持ble
-					appUtil.showModal('您的手机不支持低功耗蓝牙', false, function(confirm) {});
-				} else if (bleKeyManager.DEFAULT_BLUETOOTH_STATE.BLUETOOTH_SEND_FAILED == state) {
-					//发送失败
-					appUtil.showModal('数据发送失败', false, function(confirm) {});
-				} else if (bleKeyManager.DEFAULT_BLUETOOTH_STATE.BLUETOOTH_NO_RESPONSE == state) {
-					//无响应
-					appUtil.showModal('设备超时无响应', false, function(confirm) {});
-				} else if (bleKeyManager.DEFAULT_BLUETOOTH_STATE.BLUETOOTH_CONNECT_SUCESS == state) {
-					appUtil.hideLoading();
-				}
-			},
-
-			// 解析数据+验证合法性
-			bluetoothDataMonitor: function(type, arrayData, hexData, hexTextData) {
-				const dataStr = hexTextData || '';
-				if (type === 0) {
-					this.btnCmdSend(16, arrayData);
-					setTimeout(() => {
-						this.PackAndSend(16, 8, [0, 0, 0, 0, 0, 0, 0, 0]);
-					}, 1000);
-				}
-				this.parseData(this.trimHexData(dataStr));
-				this.handleLoggerapi(dataStr);
-				const scrollTarget = 'hiddenview';
-			},
-
-			// 发送控制命令 type 命令类型 data 命令数据
-			btnCmdSend: function(type, data) {
-				const that = this;
-				const defaultData = [0, 0, 0, 0, 0, 0, 0, 0];
-				switch (type) {
-					case 16:
-						// 认证命令
-						const orgKey = this.orgKey; // 原始密钥
-						that.PackAndSend(type, 8, that.auth_encrypt(orgKey, data));
-						break;
-					case 3: // 开锁
-					case 4: // 锁车
-					case 5: // 尾箱
-					case 6:
-						// 寻车
-						that.PackAndSend(type, 8, defaultData);
-						break;
-					case 34:
-						// 配对
-						that.PackAndSend(type, 8, data);
-						break;
-					case 7:
-						//
-						that.PackAndSend07(type, 8, data);
-						break;
-					case 58:
-						// 设置 手动或感应模式
-						const flameoutData = data; // 第一个字节为0x01，后面补11个0x00
-						this.PackAndSend3a(type, 12, flameoutData); // 发送12字节数据
-						break;
-				}
-			},
-/**
-			 * 数据打包与发送
-			 * @param {number} type 数据类型
-			 * @param {number} len 数据长度
-			 * @param {Array} data 数据内容
-			 */
-			PackAndSend: function(type, len, data) {
-				// 数据包格式: 起始符(0x24) + 类型 + 长度 + 数据 + 结束符(0x24)
-				var packet = [36, type, len, ...data, 36];
-				bleKeyManager.dispatcherSend2(this.arrayToArrayBuffer(packet));
-			},
-
-			// 打包并发送数据（支持动态数据体长度）
-			PackAndSend3a(type, dataLength, data, sign) {
-				const header = [36]; // 数据头
-				const end = [36]; // 数据尾
-				// 根据要求的数据长度填充数据，不足补0
-				const paddedData = [...data].concat(new Array(dataLength - data.length).fill(0)).slice(0, dataLength);
-				const packet = dataLength == 8 ? [...header, type, dataLength, ...data, ...end] : [...header, type, ...
-					paddedData, ...end
-				]; // 组合数据包
-				bleKeyManager.dispatcherSend2(this.arrayToArrayBuffer(packet)); // 发送数据
-			},
-
-			// 升窗降窗指令封装
-			PackAndSend07: function(type, len, data) {
-				const defaultData = [0, 0, 0, 0, 0, 0, 0];
-				var packet = [36, type, len, data, ...defaultData, 36];
-				bleKeyManager.dispatcherSend2(this.arrayToArrayBuffer(packet));
-			},
-
-			/**
-			 * 数组转ArrayBuffer
-			 * @param {Array} array 原始数组
-			 * @param {number} elementSize 元素大小(默认1字节)
-			 * @returns {ArrayBuffer} 转换后的缓冲区
-			 */
-			arrayToArrayBuffer: function(array, elementSize = 1) {
-				const typedArray = new Uint8Array(array.length * elementSize);
-				array.forEach((value, index) => (typedArray[index * elementSize] = value));
-				return typedArray.buffer;
-			},
-
-			handleTransformation(number) {
-				if (!number) {
-					return;
-				}
-				const numStr = number.toString();
-				// 分割成每两个字符一组
-				const bytes = [];
-				for (let i = 0; i < numStr.length; i += 2) {
-					const byteStr = numStr.substring(i, i + 2);
-					bytes.push(parseInt(byteStr, 16)); // 按16进制解析
-				}
-
-				return bytes;
-			},
-
-			// 转换电池剩余电量
-			initVoltage(dy) {
-				const thresholds = [4, 3.9, 3.8, 3.7, 3.6, 3.5, 3.4, 3.3, 3.2, 3.1];
-				const scores = [100, 90, 80, 70, 60, 50, 40, 30, 20, 10];
-				const index = thresholds.findIndex((threshold) => dy >= threshold);
-				return index !== -1 ? scores[index] : 0;
-			},
-
-			// 剩余电量显示图片
-			getBatteryImage(voltage) {
-				const levels = [{
-						min: 75,
-						value: '100'
-					},
-					{
-						min: 50,
-						value: '75'
-					},
-					{
-						min: 25,
-						value: '50'
-					},
-					{
-						min: 10,
-						value: '25'
-					}
-				];
-				const level = levels.find((item) => voltage > item.min) || {
-					value: '0'
-				};
-				this.voltage_image = level.value
-
-			},
-
-			// 剩余电量处转换
-			getBatteryLevel(voltage) {
-				this.getBatteryImage(voltage);
-				const thresholds = [90, 80, 70, 60, 50, 40, 30, 20, 10, 5];
-				const values = ['100', '90', '80', '70', '60', '50', '40', '30', '20', '10'];
-				const index = thresholds.findIndex((threshold) => voltage > threshold);
-				return index !== -1 ? values[index] : '1';
-			},
-
-			/**
-			 * 解析16进制车辆状态数据
-			 * @param {string} hexString 30字符的16进制字符串
-			 * @returns {Array|null} 解析结果数组，格式为[{key: string, value: any}]
-			 */
-			parseHexDataObject: function(hexString) {
-				// 验证数据长度
-				if (hexString.length !== 30) {
-					// wx.showToast({ title: '数据长度不正确', icon: 'none' });
-					return null;
-				}
-
-				// 转换为字节数组
-				const bytes = [];
-				for (let i = 0; i < 30; i += 2) {
-					bytes.push(parseInt(hexString.substr(i, 2), 16));
-				}
-				const resultObject = {};
-				resultObject.lock = bytes[2] === 1 ? true : false; //锁状态
-				resultObject.voltage = (bytes[12] / 10).toFixed(1); //电池剩余电压计算
-				resultObject.electric = this.getBatteryLevel(this.initVoltage((bytes[12] / 10).toFixed(
-					1))); //电池剩余电量计算图片
-				resultObject.supply = bytes[3];
-				resultObject.induction = bytes[0] === 1 ? '感应模式' : '手动模式'; //执行模式
-				return resultObject;
-			},
-
-			// 上传报文
-			handleLoggerapi(evt) {
-				const MAX_LOGS_BEFORE_UPLOAD = 10;
-				const {
-					deviceInfo,
-					deviceIDC,
-					logs: currentLogs
-				} = this;
-				const userId = getApp().globalData.data?.userInfo?.id;
-				const d = new Date();
-				const fmt =
-					d.getFullYear() +
-					'-' +
-					String(d.getMonth() + 1).padStart(2, '0') +
-					'-' +
-					String(d.getDate()).padStart(2, '0') +
-					' ' +
-					String(d.getHours()).padStart(2, '0') +
-					':' +
-					String(d.getMinutes()).padStart(2, '0') +
-					':' +
-					String(d.getSeconds()).padStart(2, '0');
-
-				// 构造当前日志项
-				const newLogEntry = {
-					userId,
-					sn: deviceIDC,
-					mobileinfo: `${deviceInfo?.brand || ''} ${deviceInfo?.model || ''} ${deviceInfo?.platform || ''} ${deviceInfo?.system || ''}`,
-					content: `${evt}${JSON.stringify(this.parseHexDataObject(this.trimHexData(evt)))}`,
-					logdate: fmt
-				};
-
-				// 创建新日志数组（避免直接修改原数组）
-				const updatedLogs = [...currentLogs, newLogEntry];
-				// 判断是否达到上传阈值
-				if (updatedLogs.length >= MAX_LOGS_BEFORE_UPLOAD) {
-					u_paivateuploadLog(updatedLogs).then(response => {
-						console.log(response)
-						if (response?.code === 1000) {
-							this.logs = []
-
-						} else {
-							// 上传失败，保留日志（后续可重试）
-							this.logs = updatedLogs
-
-						}
-					}).catch(() => {
-						this.logs = updatedLogs
-					})
-				} else {
-					// 未达到阈值，仅本地保存
-					this.logs = updatedLogs
-				}
-			},
-
-			/**
-			 * 数据解析按钮处理
-			 * @param {string} hexData 16进制数据字符串
-			 */
-			parseData: function(hexData) {
-				const parsedResult = this.parseHexDataObject(hexData);
-				if (parsedResult) {
-					this.parsedData = parsedResult
-
-				}
-			},
-
-			/**
-			 * 初始化蓝牙连接
-			 */
-			btnStartConnect: function() {
-				const that = this;
-				if (that.connectionID == '') {
-					bleKeyManager.connectBLE(
-						that.deviceIDC,
-						function(state) {
-							that.bluetoothStateMonitor(state);
-						},
-						function(type, arrayData, hexData, hexTextData) {
-							that.bluetoothDataMonitor(type, arrayData, hexData, hexTextData);
-						}
-					);
-				} else {
-					appUtil.showModal('已连接蓝牙', false, function(confirm) {});
-				}
-			},
-
-			/**
-			 * 修剪16进制数据
-			 * @param {string} hexString 原始16进制字符串
-			 * @returns {string} 修剪后的有效数据部分
-			 */
-			trimHexData: function(hexString) {
-				if (typeof hexString !== 'string' || !/^[0-9a-fA-F]+$/.test(hexString)) {
-					throw new Error('无效的16进制字符串');
-				}
-				return hexString.slice(4, -2); // 去除头尾固定字符
-			},
-
-			/**
-			 * 断开蓝牙连接
-			 */
-			btnEndConnect: function() {
-				bleKeyManager.releaseBle();
-			},
-
-			// 指令公共方法
-			sendVehicleCommandFun: function(commandCode, code) {
-				if (!this?.bluetoothData?.platenumber) {
-					uni.showModal({
-						title: '提示',
-						content: '请先开通设定再到开通设定-功能设置处完善设置',
-						confirmText: '立即开通',
-						success: (res) => {
-							if (res.confirm) {
-								uni.redirectTo({
-									url: '/pages/listOfPrivateCars/list/index'
-								});
-							}
-						}
-					});
-					return;
-				}
-				if (this?.bluetoothData?.platenumber && this.connectionState == '已连接') {
-					uni.showModal({
-						title: '提示',
-						content: commandCode == 3 || commandCode == 4 ? '确认下发指令' :
-							'如原车钥匙不支持此功能请自行点击【更多钥匙功能】关闭',
-						confirmText: commandCode == 3 || commandCode == 4 ? '确认' : '确认支持',
-						complete: (res) => {
-							if (res.confirm) {
-								uni.showLoading({
-									title: '加载中...',
-									mask: true
-								});
-								this.btnCmdSend(commandCode, code);
-								setTimeout(() => {
-									uni.hideLoading();
-								}, 1000);
-								this.handleSendInfo(commandCode, code);
-							}
-						}
-					});
-					return;
-				}
-				if (this.connectionState == '未连接') {
-					uni.showToast({
-						title: '请等待蓝牙连接后重试',
-						icon: 'none'
-					});
-					return;
-				}
-			},
-
-			// 发送控制命令
-			handleSendInfo(commandCode, code) {
-				const temp = {
-					sn: this.deviceIDC,
-					controltype: `${commandCode}${code}`,
-					electricity: this?.parsedData?.electric || 0
-				};
-				// byPost('https://k1sw.wiselink.net.cn/' + u_sendInfo.URL, temp, function() {});
-				u_paivatesendInfo(temp)
-			},
-
-			handleToConfigure: function() {
-				uni.redirectTo({
-					url: `/pages/privateCar/btSettings/index?sign=${4}`
-				});
-			},
-
-			//跳转配置
-
-			/**
-			 * 获取已连接设备信息
-			 */
-			btnConnected: function() {
-				bleKeyManager.connectedDevice();
-			},
-
-
-			// 初始化获取缓存内容
-			initToConfigureCache() {
-				const currentItems = this.controlItems || [];
-				uni.getStorage({
-					key: 'controlItems',
-					success: (res) => {
-						const storageItems = res.data || [];
-						const merged = [...currentItems, ...storageItems];
-						const uniqueMap = new Map();
-						merged.forEach((item) => {
-							const existing = uniqueMap.get(item.id);
-							if (!existing) {
-								uniqueMap.set(item.id, item);
-							} else {
-								if (item.enabled === false) {
-									uniqueMap.set(item.id, item);
-								}
-							}
+					fail: (err) => {
+						console.error('获取位置失败', err);
+						uni.showToast({
+							title: '定位失败',
+							icon: 'none'
 						});
-						const result = Array.from(uniqueMap.values());
-						this.controlItems = result
 					}
 				});
+			},
+			onRegionChange(e) {
+				console.log('地图区域变化', e);
 			}
 		}
 	};
 </script>
 
-<style>
-	/* 基础样式 */
-	page {
-		background: linear-gradient(to bottom, #2d8cf0, #ffffff);
-		font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
-		min-height: 100vh;
-	}
-
-	.container {
-		padding: 20rpx;
-		padding-top: 40rpx;
+<style scoped>
+	/* 主容器 */
+	.control_container {
 		display: flex;
+		gap: 20px;
 		flex-direction: column;
-		background-repeat: no-repeat;
-		background-size: cover;
-		background-position: center;
+		padding: 15px;
+		height: 100vh;
+		background: linear-gradient(to bottom, #E6F1F5, #F0F7F9);
 	}
 
-	/* 车辆卡片 */
-	.vehicle-card {
-		background: #fff;
-		border-radius: 20rpx;
-		padding: 30rpx;
-		margin-bottom: 30rpx;
-		box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.1);
-	}
 
-	/* 车牌与提示信息 */
-	.license-plate-section {
-		margin-bottom: 30rpx;
-	}
-
-	/* 车牌和提示的水平布局容器 */
-	.license-plate-container {
+	/* 头部内容 */
+	.control_title {
 		display: flex;
+		gap: 5px;
+		flex-direction: column;
+		margin-top: 80px;
+	}
+
+	.control_title .header {
+		display: flex;
+		flex-direction: row;
 		justify-content: space-between;
-		align-items: flex-start;
+		align-items: center;
 	}
 
-	.vehicle-info {
+	.control_title .title {
+		color: #333;
+		font-size: 24px;
+	}
+
+	.control_title .subtitle {
+		color: #666;
+		font-size: 16px;
+	}
+
+	.control_title .location-divider {
+		font-size: 15px;
+	}
+
+	.control_title .icon {
+		width: 26px;
+		height: 26px;
+	}
+
+	.control_title .icons-container {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 10px;
+	}
+
+
+	/* 地图内容 */
+	.control_car_picture {
+		position: relative;
+		display: flex;
+		justify-content: center;
+	}
+
+	.control_car_picture .map {
+		width: 100%;
+	}
+
+	.control_car_picture .map_control {
+		position: absolute;
+		top: 10px;
+		right: 10px;
+		background-color: #fff;
+		width: 35px;
+		height: 35px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border-radius: 50px;
+	}
+
+	.control_car_picture .map_image {
+		width: 26px;
+		height: 26px;
+	}
+
+
+	/* 控制中心 */
+	.control_quick-entry {
+		position: relative;
+		background-color: #fff;
+		border-radius: 4px;
+	}
+
+	.entry-swiper {
+		height: 200rpx;
+		width: 100%;
+	}
+
+	.entry-page {
+		display: flex;
+		align-items: center;
+		padding-left: 20rpx;
+		/* 使元素靠左对齐 */
+		box-sizing: border-box;
+		height: 100%;
+		/* 确保 entry-page 占满 swiper 的高度 */
+	}
+
+	.entry-item {
+		width: 23%;
+		/* 调整宽度以适应每行四个图标 */
 		display: flex;
 		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		/* 上下居中 */
+		margin-right: 20rpx;
+		height: 160rpx;
+		/* 设置固定高度，配合 justify-content: center 实现上下居中 */
 	}
 
-	.license-plate {
-		font-size: 42rpx;
-		font-weight: bold;
-		color: #333;
+	.entry-icon {
+		width: 80rpx;
+		height: 80rpx;
 		margin-bottom: 10rpx;
 	}
 
-	.vehicle-status {
-		display: flex;
-		align-items: center;
-	}
-
-	.status-dot {
-		width: 16rpx;
-		height: 16rpx;
-		border-radius: 50%;
-		margin-right: 10rpx;
-	}
-
-	.status-dot.connected {
-		background-color: #40b87c;
-	}
-
-	.status-dot.disconnected {
-		background-color: #ff6b6b;
-	}
-
-	.status-text {
+	.entry-text {
 		font-size: 24rpx;
-		color: #666;
-	}
-
-	.action-buttons {
-		display: flex;
-		flex-direction: column;
-		gap: 15rpx;
-	}
-
-	/* "安装使用手册" 提示框样式 */
-	.manual-tip {
-		font-size: 24rpx;
-		border: 1px solid #ddd;
-		padding: 8rpx 16rpx;
-		border-radius: 8rpx;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 8rpx;
-		color: #666;
-	}
-
-	/* "详细设置" 提示样式 */
-	.connection-tip {
-		font-size: 24rpx;
-		display: flex;
-		align-items: center;
-		background: #2d8cf0;
-		padding: 8rpx 16rpx;
-		border-radius: 8rpx;
-		color: #fff;
-		gap: 8rpx;
-	}
-
-	.action-icon {
-		width: 28rpx;
-		height: 28rpx;
-	}
-
-	/* 车辆图片容器 */
-	.vehicle-image-container {
-		position: relative;
-		width: 100%;
-		height: 320rpx;
-		border-radius: 16rpx;
-		margin-bottom: 30rpx;
-		overflow: hidden;
-		background: linear-gradient(to bottom, #bad7f5, #ffffff);
-	}
-
-	.vehicle-image {
-		width: 100%;
-		height: 100%;
-	}
-
-	.vehicle-overlay {
-		position: absolute;
-		bottom: 20rpx;
-		left: 0;
-		right: 0;
-		display: flex;
-		justify-content: space-between;
-		padding: 0 20rpx;
-	}
-
-	.battery-status,
-	.bluetooth-container {
-		display: flex;
-		align-items: center;
-		padding: 10rpx 20rpx;
-		border-radius: 20rpx;
-		background: rgba(255, 255, 255, 0.9);
-		box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
-	}
-
-	.battery-status {
-		color: #2d8cf0;
-		position: relative;
-	}
-
-	.bluetooth-status.connected {
-		display: flex;
-		gap: 10rpx;
-		color: #2d8cf0;
-		font-size: 28rpx;
-	}
-
-	.bluetooth-status.disconnected {
-		display: flex;
-		gap: 10rpx;
-		color: #666;
-		font-size: 28rpx;
-		position: relative;
-	}
-
-	/* 模式选择器 */
-	.mode-section {
-		display: flex;
-		flex-direction: column;
-		margin-bottom: 30rpx;
-	}
-
-	.mode-title {
-		font-size: 30rpx;
-		font-weight: bold;
-		color: #333;
-		margin-bottom: 15rpx;
-	}
-
-	/* 控制功能区 - 每行3个大按钮 */
-	.control-section {
-		background: #fff;
-		border-radius: 20rpx;
-		padding: 0rpx 30rpx 20rpx 30rpx;
-		box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.1);
-		display: flex;
-		gap: 40rpx;
-		flex-direction: column;
-	}
-
-	.control-title {
-		border-bottom: 1px solid #f0f0f0;
-		height: 100rpx;
-		display: flex;
-		align-items: center;
-		flex-direction: row;
-		justify-content: space-between;
-		font-size: 30rpx;
-	}
-
-	.control-title .title-bold {
-		font-weight: bold;
-		color: #333;
-	}
-
-	.control-title .more-functions {
-		display: flex;
-		flex-direction: row;
-		justify-content: center;
-		align-items: center;
-		font-size: 28rpx;
-		color: #2d8cf0;
-	}
-
-	.control-title .more-functions image {
-		width: 40rpx;
-		height: 30rpx;
-		margin-left: 10rpx;
-	}
-
-	.control-grid {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: space-between;
-	}
-
-	.control-item {
-		width: 30%;
-		/* 每行3个按钮 */
-		margin-bottom: 30rpx;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		transition: transform 0.2s;
-	}
-
-	.control-item:active {
-		transform: scale(0.95);
-	}
-
-	.control-icon {
-		width: 120rpx;
-		height: 120rpx;
-		border-radius: 50%;
-		background: #f5f5f5;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		margin-bottom: 15rpx;
-		box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
-		transition: all 0.3s;
-	}
-
-	.control-icon:active {
-		background: #e0e0e0;
-		box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.1);
-	}
-
-	.control-name {
-		font-size: 28rpx;
 		color: #333;
 		text-align: center;
-		font-weight: 500;
 	}
 
-	.control-icon-image {
-		width: 50rpx;
-		height: 50rpx;
-	}
-
-	.battery-icon {
-		width: 36rpx;
-		height: 36rpx;
-		margin-right: 10rpx;
-	}
-
-	.battery-text {
-		font-size: 28rpx;
-		font-weight: 500;
-	}
-
-	.tips_voltage {
+	.custom-indicator {
 		position: absolute;
-		top: -80%;
-		right: -50%;
-		background: rgba(66, 66, 66, 0.9);
-		border-radius: 10rpx;
-		color: #fff;
-		padding: 10rpx 20rpx;
-		font-size: 26rpx;
-		z-index: 10;
-	}
-
-	.tips_bluetooth {
-		position: absolute;
-		top: -80%;
-		right: 10%;
-		background: rgba(66, 66, 66, 0.9);
-		border-radius: 10rpx;
-		color: #fff;
-		padding: 10rpx 20rpx;
-		font-size: 26rpx;
-		z-index: 10;
-	}
-
-	.GY-sensor-mode-wrapper {
-		width: 100%;
-		transition: transform 0.1s ease;
-	}
-
-	.GY-sensor-mode-wrapper:active {
-		transform: scale(0.98);
-	}
-
-	.GY-sensor-mode {
-		height: 80rpx;
+		bottom: 4rpx;
+		right: 10rpx;
+		padding: 3rpx 10rpx;
+		background-color: rgba(0, 0, 0, .3);
+		color: white;
 		border-radius: 20rpx;
+		font-size: 24rpx;
+	}
+
+	/* 信息中心 */
+	/* 容器 */
+	.control_info-root {
 		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 0 30rpx;
-		box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
-		transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+		height: 150px;
+		gap: 20px;
+		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+	}
+
+	/* 左侧卡片 */
+	.control_info-left-card {
+		flex: 1;
+		background-color: #fff;
 		position: relative;
-		overflow: hidden;
+		box-sizing: border-box;
+		border-radius: 8px;
+		padding: 20px;
 	}
 
-	.GY-sensor-mode.off {
-		background-color: #f0f0f0;
-		color: #999;
-	}
-
-	.GY-sensor-mode.on {
-		background-color: #2d8cf0;
-		color: #fff;
-		box-shadow: 0 6rpx 16rpx rgba(45, 140, 240, 0.3);
-	}
-
-	.GY-ripple {
+	/* 四个角的通用样式 */
+	.control_info-corner {
 		position: absolute;
-		width: 100%;
-		border-radius: 30%;
-		border: 2px solid rgba(255, 255, 255, 0.4);
-		opacity: 0;
-		animation: none;
-	}
-
-	/* 图标设计 */
-	.GY-icon {
-		width: 40rpx;
-		height: 40rpx;
-		border-radius: 50%;
-		background-color: currentColor;
-		position: relative;
 		display: flex;
+		flex-direction: column;
 		align-items: center;
 		justify-content: center;
 	}
 
-	.GY-icon::before {
-		content: '';
-		width: 20rpx;
-		height: 20rpx;
-		border-radius: 50%;
-		background-color: #fff;
+	.control_info-top-left {
+		top: 20px;
+		left: 20px;
 	}
 
-	.GY-label {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		gap: 15rpx;
-		font-size: 30rpx;
+	.control_info-top-right {
+		top: 20px;
+		right: 20px;
+	}
+
+	.control_info-bottom-left {
+		bottom: 20px;
+		left: 20px;
+	}
+
+	.control_info-bottom-right {
+		bottom: 20px;
+		right: 20px;
+	}
+
+	.control_info-date {
+		font-size: 11px;
+		color: #777;
+	}
+
+	.control_info-label {
+		font-size: 13px;
+		color: #555;
+		margin-top: 4px;
+	}
+
+	.control_info-battery-value {
+		font-size: 15px;
+		color: #555;
 		font-weight: 500;
-		margin-left: 20rpx;
 	}
 
-	.GY-grant {
+	.control_info-battery-unit {
+		font-size: 11px;
+		color: #777;
+	}
+
+	/* 右侧区域 */
+	.control_info-right-container {
+		flex: 1;
 		display: flex;
 		flex-direction: column;
+		gap: 10px;
+	}
+
+	.control_info-right-item {
+		flex: 1;
+		background-color: #fff;
+		border-radius: 8px;
+		display: flex;
 		align-items: center;
-		padding: 20rpx;
-		background: #f8f9fa;
-		border-radius: 12rpx;
+		justify-content: center;
+		gap: 15px;
 	}
 
-	.grant-title {
-		font-size: 26rpx;
-		color: #666;
-		margin-bottom: 10rpx;
+	.control_info-icon {
+		width: 30px;
+		height: 30px;
 	}
 
-	.grant-period {
-		font-size: 28rpx;
-		color: #333;
-		font-weight: 500;
+	.control_info-title {
+		color: #444;
+		font-size: 14px;
 	}
 
-	.loading-icon {
-		width: 32rpx;
-		height: 32rpx;
-		border: 2px solid #ddd;
-		border-top: 2px solid #2d8cf0;
-		border-radius: 50%;
-		animation: spin 1s linear infinite;
+	.control_info-status {
+		color: #888;
+		font-size: 12px;
+		margin-top: 2px;
 	}
 
-	@keyframes spin {
-		0% {
-			transform: rotate(0deg);
-		}
-
-		100% {
-			transform: rotate(360deg);
-		}
+	.control_car_text {
+		display: flex;
+		flex-direction: column;
 	}
 </style>

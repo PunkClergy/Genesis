@@ -1,0 +1,222 @@
+
+	/* 主容器 */
+.control_container[data-v-1cf27b2a] {
+		display: flex;
+		gap: 20px;
+		flex-direction: column;
+		padding: 15px;
+		height: 100vh;
+		background: linear-gradient(to bottom, #E6F1F5, #F0F7F9);
+}
+
+
+	/* 头部内容 */
+.control_title[data-v-1cf27b2a] {
+		display: flex;
+		gap: 5px;
+		flex-direction: column;
+		margin-top: 80px;
+}
+.control_title .header[data-v-1cf27b2a] {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+}
+.control_title .title[data-v-1cf27b2a] {
+		color: #333;
+		font-size: 24px;
+}
+.control_title .subtitle[data-v-1cf27b2a] {
+		color: #666;
+		font-size: 16px;
+}
+.control_title .location-divider[data-v-1cf27b2a] {
+		font-size: 15px;
+}
+.control_title .icon[data-v-1cf27b2a] {
+		width: 26px;
+		height: 26px;
+}
+.control_title .icons-container[data-v-1cf27b2a] {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 10px;
+}
+
+
+	/* 地图内容 */
+.control_car_picture[data-v-1cf27b2a] {
+		position: relative;
+		display: flex;
+		justify-content: center;
+}
+.control_car_picture .map[data-v-1cf27b2a] {
+		width: 100%;
+}
+.control_car_picture .map_control[data-v-1cf27b2a] {
+		position: absolute;
+		top: 10px;
+		right: 10px;
+		background-color: #fff;
+		width: 35px;
+		height: 35px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border-radius: 50px;
+}
+.control_car_picture .map_image[data-v-1cf27b2a] {
+		width: 26px;
+		height: 26px;
+}
+
+
+	/* 控制中心 */
+.control_quick-entry[data-v-1cf27b2a] {
+		position: relative;
+		background-color: #fff;
+		border-radius: 4px;
+}
+.entry-swiper[data-v-1cf27b2a] {
+		height: 6.25rem;
+		width: 100%;
+}
+.entry-page[data-v-1cf27b2a] {
+		display: flex;
+		align-items: center;
+		padding-left: 0.625rem;
+		/* 使元素靠左对齐 */
+		box-sizing: border-box;
+		height: 100%;
+		/* 确保 entry-page 占满 swiper 的高度 */
+}
+.entry-item[data-v-1cf27b2a] {
+		width: 23%;
+		/* 调整宽度以适应每行四个图标 */
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		/* 上下居中 */
+		margin-right: 0.625rem;
+		height: 5rem;
+		/* 设置固定高度，配合 justify-content: center 实现上下居中 */
+}
+.entry-icon[data-v-1cf27b2a] {
+		width: 2.5rem;
+		height: 2.5rem;
+		margin-bottom: 0.3125rem;
+}
+.entry-text[data-v-1cf27b2a] {
+		font-size: 0.75rem;
+		color: #333;
+		text-align: center;
+}
+.custom-indicator[data-v-1cf27b2a] {
+		position: absolute;
+		bottom: 0.125rem;
+		right: 0.3125rem;
+		padding: 0.09375rem 0.3125rem;
+		background-color: rgba(0, 0, 0, .3);
+		color: white;
+		border-radius: 0.625rem;
+		font-size: 0.75rem;
+}
+
+	/* 信息中心 */
+	/* 容器 */
+.control_info-root[data-v-1cf27b2a] {
+		display: flex;
+		height: 150px;
+		gap: 20px;
+		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+	/* 左侧卡片 */
+.control_info-left-card[data-v-1cf27b2a] {
+		flex: 1;
+		background-color: #fff;
+		position: relative;
+		box-sizing: border-box;
+		border-radius: 8px;
+		padding: 20px;
+}
+
+	/* 四个角的通用样式 */
+.control_info-corner[data-v-1cf27b2a] {
+		position: absolute;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+}
+.control_info-top-left[data-v-1cf27b2a] {
+		top: 20px;
+		left: 20px;
+}
+.control_info-top-right[data-v-1cf27b2a] {
+		top: 20px;
+		right: 20px;
+}
+.control_info-bottom-left[data-v-1cf27b2a] {
+		bottom: 20px;
+		left: 20px;
+}
+.control_info-bottom-right[data-v-1cf27b2a] {
+		bottom: 20px;
+		right: 20px;
+}
+.control_info-date[data-v-1cf27b2a] {
+		font-size: 11px;
+		color: #777;
+}
+.control_info-label[data-v-1cf27b2a] {
+		font-size: 13px;
+		color: #555;
+		margin-top: 4px;
+}
+.control_info-battery-value[data-v-1cf27b2a] {
+		font-size: 15px;
+		color: #555;
+		font-weight: 500;
+}
+.control_info-battery-unit[data-v-1cf27b2a] {
+		font-size: 11px;
+		color: #777;
+}
+
+	/* 右侧区域 */
+.control_info-right-container[data-v-1cf27b2a] {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+}
+.control_info-right-item[data-v-1cf27b2a] {
+		flex: 1;
+		background-color: #fff;
+		border-radius: 8px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 15px;
+}
+.control_info-icon[data-v-1cf27b2a] {
+		width: 30px;
+		height: 30px;
+}
+.control_info-title[data-v-1cf27b2a] {
+		color: #444;
+		font-size: 14px;
+}
+.control_info-status[data-v-1cf27b2a] {
+		color: #888;
+		font-size: 12px;
+		margin-top: 2px;
+}
+.control_car_text[data-v-1cf27b2a] {
+		display: flex;
+		flex-direction: column;
+}
