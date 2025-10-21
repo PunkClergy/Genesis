@@ -1,0 +1,130 @@
+<template>
+	<!-- 状态栏占位视图 -->
+	<view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
+
+	<!-- 导航栏 -->
+	<view class="nav-bar" :style="{ height: navBarHeight + 'px' }">
+		<view class="nav-content">
+			<!-- 返回按钮 -->
+			<image src="/static/public/nav_left.png" class="action-icon back-icon" @click="handleBack"></image>
+
+			<!-- 首页按钮 -->
+			<image src="/static/public/home.png" class="action-icon home-icon" @tap="handleHome"></image>
+
+			<!-- 标题 - 使用 text 组件解决加粗问题 -->
+			<view><text class="nav-title">{{title}}</text></view>
+
+		</view>
+	</view>
+</template>
+
+<script>
+	import {
+		info_screen
+	} from '@/utils/scheme/screen.js'
+	export default {
+		data() {
+			return {
+				screenInfo: {}, // 屏幕信息对象
+			}
+		},
+		props: {
+			title: { // 更明确的属性名
+				type: String,
+				default: '首页'
+			}
+
+		},
+		computed: {
+
+			// 状态栏高度
+			statusBarHeight() {
+				return this.screenInfo.statusBarHeight || 0;
+			},
+			// 导航栏主体高度
+			navBarHeight() {
+				return this.screenInfo.platform === 'ios' ? 49 : 44;
+			},
+
+		},
+		methods: {
+			// 初始化屏幕信息
+			async initialScreenInfo() {
+				try {
+					this.screenInfo = await info_screen();
+				} catch (error) {
+					console.error('[ScreenInfo] 获取屏幕信息失败:', error);
+					uni.showToast({
+						title: '设备信息获取失败',
+						icon: 'none'
+					});
+				}
+			},
+			// 返回按钮事件
+			handleBack() {
+				this.$emit('back');
+				uni.navigateBack();
+			},
+
+			// 首页按钮事件
+			handleHome() {
+				this.$emit('home');
+				console.log((uni))
+				uni.switchTab({
+					url: '/pages/desk/desk'
+				});
+			}
+		},
+		mounted() {
+			this.initialScreenInfo();
+		}
+	}
+</script>
+
+<style>
+	.status-bar {
+		/* background-color: #F8F8F8; */
+	}
+
+	/* 导航栏样式 */
+	.nav-bar {
+		display: flex;
+		/* background-color: #F8F8F8; */
+		justify-content: center;
+		/* box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1); */
+	}
+
+	/* 导航内容容器 */
+	.nav-content {
+		display: flex;
+		flex-direction: row;
+		width: 750rpx;
+		padding: 0 30rpx;
+	}
+
+	/* 操作图标通用样式 */
+	.action-icon {
+		width: 50rpx;
+		height: 50rpx;
+	}
+
+	/* 返回按钮 */
+	.back-icon {
+		margin-right: 30rpx;
+	}
+
+	/* 首页按钮 */
+	.home-icon {
+		margin-right: 60rpx;
+	}
+
+	/* 导航标题 - 解决加粗问题 */
+	.nav-title {
+		font-size: 32rpx;
+		font-weight: 700;
+		/* 使用 700 替代 bold */
+		color: #333;
+		/* 如果仍不生效，可引入自定义字体 */
+		font-family: 'PingFangSC-Medium', 'Helvetica Neue', sans-serif;
+	}
+</style>
