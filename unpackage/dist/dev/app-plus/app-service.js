@@ -38,6 +38,20 @@ if (uni.restoreGlobal) {
       console[type].apply(console, [...args, filename]);
     }
   }
+  const info_screen = () => {
+    return new Promise((resolve, reject) => {
+      uni.getSystemInfo({
+        success: function(res) {
+          formatAppLog("log", "at utils/scheme/screen.js:10", "屏幕可用高度:", res.windowHeight);
+          resolve(res);
+        },
+        fail: function(err) {
+          formatAppLog("error", "at utils/scheme/screen.js:14", "获取系统信息失败", err);
+          reject(err);
+        }
+      });
+    });
+  };
   const _imports_0 = "/static/scan-code.png";
   const _imports_1 = "/static/set_up.png";
   const _imports_2 = "/static/bluetooth.png";
@@ -83,23 +97,41 @@ if (uni.restoreGlobal) {
             icon: "/static/weixiang.png"
           },
           {
-            text: "升窗"
+            text: "升窗",
+            icon: "/static/sc.png"
           },
           {
-            text: "降窗"
+            text: "降窗",
+            icon: "/static/jc.png"
           },
           {
-            text: "左中门"
+            text: "左中门",
+            icon: "/static/zm.png"
           },
           {
-            text: "右中门"
+            text: "右中门",
+            icon: "/static/ym.png"
           }
         ],
         itemsPerPage: 4,
-        current: 0
+        current: 0,
+        screenInfo: {}
       };
     },
-    onLoad() {
+    async onLoad() {
+      this.isLoading = true;
+      uni.hideTabBar({
+        animation: true
+      });
+      try {
+        await Promise.allSettled([
+          this.initialScreenInfo()
+        ]);
+      } catch (error) {
+        formatAppLog("error", "at pages/index/index.vue:183", "初始化失败:", error);
+      } finally {
+        this.isLoading = false;
+      }
       this.getLocation();
     },
     computed: {
@@ -110,9 +142,29 @@ if (uni.restoreGlobal) {
           pages.push(this.entries.slice(i, i + this.itemsPerPage));
         }
         return pages;
+      },
+      containerStyle() {
+        formatAppLog("log", "at pages/index/index.vue:200", this.screenInfo);
+        return {
+          height: `${this.screenInfo.screenHeight || 667}px`
+        };
+      },
+      // 导航栏样式
+      navbarStyle() {
+        return {
+          marginTop: `${this.screenInfo.statusBarHeight}px`
+        };
       }
     },
     methods: {
+      // 初始化屏幕信息
+      async initialScreenInfo() {
+        try {
+          this.screenInfo = await info_screen();
+        } catch (error) {
+          formatAppLog("error", "at pages/index/index.vue:219", "[ScreenInfo] 获取屏幕信息失败:", error);
+        }
+      },
       onSwiperChange(e) {
         this.current = e.detail.current;
       },
@@ -130,7 +182,7 @@ if (uni.restoreGlobal) {
             this.markers[0].callout.content = "你在这里";
           },
           fail: (err) => {
-            formatAppLog("error", "at pages/index/index.vue:178", "获取位置失败", err);
+            formatAppLog("error", "at pages/index/index.vue:239", "获取位置失败", err);
             uni.showToast({
               title: "定位失败",
               icon: "none"
@@ -139,7 +191,7 @@ if (uni.restoreGlobal) {
         });
       },
       onRegionChange(e) {
-        formatAppLog("log", "at pages/index/index.vue:187", "地图区域变化", e);
+        formatAppLog("log", "at pages/index/index.vue:248", "地图区域变化", e);
       }
     }
   };
@@ -148,34 +200,44 @@ if (uni.restoreGlobal) {
       "section",
       {
         class: "control_container",
+        style: vue.normalizeStyle($options.containerStyle),
         onTouchmove: _cache[2] || (_cache[2] = vue.withModifiers(() => {
         }, ["prevent"]))
       },
       [
         vue.createCommentVNode(" 头部内容 "),
-        vue.createElementVNode("view", { class: "control_title" }, [
-          vue.createElementVNode("view", { class: "header" }, [
-            vue.createElementVNode("view", { class: "title" }, [
-              vue.createTextVNode(" 雅迪王 "),
-              vue.createElementVNode("text", { style: { "font-size": "16px" } }, "京AYU76G")
+        vue.createElementVNode(
+          "view",
+          {
+            class: "control_title",
+            style: vue.normalizeStyle($options.navbarStyle)
+          },
+          [
+            vue.createElementVNode("view", { class: "header" }, [
+              vue.createElementVNode("view", { class: "title" }, [
+                vue.createTextVNode(" 雅迪王 "),
+                vue.createElementVNode("text", { style: { "font-size": "16px" } }, "京AYU76G")
+              ]),
+              vue.createElementVNode("view", { class: "icons-container" }, [
+                vue.createElementVNode("image", {
+                  src: _imports_0,
+                  class: "icon"
+                }),
+                vue.createElementVNode("image", {
+                  src: _imports_1,
+                  class: "icon"
+                })
+              ])
             ]),
-            vue.createElementVNode("view", { class: "icons-container" }, [
-              vue.createElementVNode("image", {
-                src: _imports_0,
-                class: "icon"
-              }),
-              vue.createElementVNode("image", {
-                src: _imports_1,
-                class: "icon"
-              })
+            vue.createElementVNode("view", { class: "subtitle" }, [
+              vue.createElementVNode("text", null, "已关锁"),
+              vue.createElementVNode("text", { class: "location-divider" }, "丨"),
+              vue.createElementVNode("text", null, "北京市丰台区海鹰大厦")
             ])
-          ]),
-          vue.createElementVNode("view", { class: "subtitle" }, [
-            vue.createElementVNode("text", null, "已关锁"),
-            vue.createElementVNode("text", { class: "location-divider" }, "丨"),
-            vue.createElementVNode("text", null, "北京市丰台区海鹰大厦")
-          ])
-        ]),
+          ],
+          4
+          /* STYLE */
+        ),
         vue.createCommentVNode(" 地图内容 "),
         vue.createElementVNode("view", { class: "control_car_picture" }, [
           vue.createElementVNode("map", {
@@ -312,10 +374,20 @@ if (uni.restoreGlobal) {
               vue.createElementVNode("text", { class: "control_info-title" }, "车辆中心")
             ])
           ])
+        ]),
+        vue.createCommentVNode(" 解释权区域 "),
+        vue.createElementVNode("view", { class: "control_footer" }, [
+          vue.createElementVNode("view", { class: "footer-content" }, [
+            vue.createElementVNode("view", null, "连接状态：当地图上蓝牙图标变蓝时车辆可操作"),
+            vue.createElementVNode("view", null, "位置信息：当前显示为上一次蓝牙连接位置"),
+            vue.createElementVNode("view", null, "操控区域：第一页功能支持全部车辆，第二页仅高配或商务车支持"),
+            vue.createElementVNode("view", null, "电量信息：蓝牙连接后获取信息，且可用天数计算规则依照此次充电后个人用车习惯计算"),
+            vue.createElementVNode("view", null, "感应模式：需在设置功能处执行蓝牙配对后方可开启（仅车主支持）")
+          ])
         ])
       ],
-      32
-      /* NEED_HYDRATION */
+      36
+      /* STYLE, NEED_HYDRATION */
     );
   }
   const PagesIndexIndex = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["render", _sfc_render], ["__scopeId", "data-v-1cf27b2a"], ["__file", "C:/Users/PC/Documents/GitHub/Genesis/pages/index/index.vue"]]);

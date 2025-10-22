@@ -1,7 +1,8 @@
 <template>
-	<section class="control_container" @touchmove.prevent>
+
+	<section class="control_container" :style="containerStyle" @touchmove.prevent>
 		<!-- 头部内容 -->
-		<view class="control_title">
+		<view class="control_title" :style="navbarStyle">
 			<view class="header">
 				<view class="title">
 					雅迪王
@@ -93,10 +94,26 @@
 				</view>
 			</view>
 		</view>
+
+		<!-- 解释权区域 -->
+		<view class="control_footer">
+			<view class="footer-content">
+				<view>连接状态：当地图上蓝牙图标变蓝时车辆可操作</view>
+				<view>位置信息：当前显示为上一次蓝牙连接位置</view>
+				<view>操控区域：第一页功能支持全部车辆，第二页仅高配或商务车支持</view>
+				<view>电量信息：蓝牙连接后获取信息，且可用天数计算规则依照此次充电后个人用车习惯计算</view>
+				<view>感应模式：需在设置功能处执行蓝牙配对后方可开启（仅车主支持）</view>
+			</view>
+			
+		</view>
 	</section>
+
 </template>
 
 <script>
+	import {
+		info_screen
+	} from '@/utils/scheme/screen.js'
 	export default {
 		data() {
 			return {
@@ -139,19 +156,37 @@
 					{
 						text: '左中门',
 						icon: '/static/zm.png'
-					}, 
+					},
 					{
 						text: '右中门',
 						icon: '/static/ym.png'
 					},
 				],
 				itemsPerPage: 4,
-				current: 0
+				current: 0,
+				screenInfo: {}
 			};
 		},
-		onLoad() {
+
+		async onLoad() {
+			this.isLoading = true;
+			uni.hideTabBar({
+				animation: true
+			});
+
+			try {
+				await Promise.allSettled([
+					this.initialScreenInfo(),
+				]);
+
+			} catch (error) {
+				console.error('初始化失败:', error);
+			} finally {
+				this.isLoading = false;
+			}
 			this.getLocation();
 		},
+
 		computed: {
 			pages() {
 				const pages = [];
@@ -160,9 +195,31 @@
 					pages.push(this.entries.slice(i, i + this.itemsPerPage));
 				}
 				return pages;
-			}
+			},
+			containerStyle() {
+				console.log(this.screenInfo)
+				return {
+					height: `${this.screenInfo.screenHeight || 667}px`
+				}
+			},
+			// 导航栏样式
+			navbarStyle() {
+				return {
+					marginTop: `${this.screenInfo.statusBarHeight}px`,
+				}
+			},
 		},
 		methods: {
+			// 初始化屏幕信息
+			async initialScreenInfo() {
+				try {
+					this.screenInfo = await info_screen()
+
+				} catch (error) {
+					console.error('[ScreenInfo] 获取屏幕信息失败:', error)
+
+				}
+			},
 			onSwiperChange(e) {
 				this.current = e.detail.current;
 			},
@@ -211,7 +268,7 @@
 		display: flex;
 		gap: 5px;
 		flex-direction: column;
-		margin-top: 80px;
+		/* margin-top: 80px; */
 	}
 
 	.control_title .header {
@@ -294,23 +351,18 @@
 		display: flex;
 		align-items: center;
 		padding-left: 20rpx;
-		/* 使元素靠左对齐 */
 		box-sizing: border-box;
 		height: 100%;
-		/* 确保 entry-page 占满 swiper 的高度 */
 	}
 
 	.entry-item {
 		width: 23%;
-		/* 调整宽度以适应每行四个图标 */
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		/* 上下居中 */
 		margin-right: 20rpx;
 		height: 160rpx;
-		/* 设置固定高度，配合 justify-content: center 实现上下居中 */
 	}
 
 	.entry-icon {
@@ -337,7 +389,6 @@
 	}
 
 	/* 信息中心 */
-	/* 容器 */
 	.control_info-root {
 		display: flex;
 		height: 150px;
@@ -443,5 +494,23 @@
 	.control_car_text {
 		display: flex;
 		flex-direction: column;
+	}
+
+
+	/* 解释权区域 */
+	.control_footer {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+		box-sizing: border-box;
+	}
+
+	.footer-content {
+		flex: 1;
+		overflow-y: auto;
+		background-color: #fff;
+		padding: 10px;
 	}
 </style>

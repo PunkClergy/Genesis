@@ -15,7 +15,7 @@
 		display: flex;
 		gap: 5px;
 		flex-direction: column;
-		margin-top: 80px;
+		/* margin-top: 80px; */
 }
 .control_title .header[data-v-1cf27b2a] {
 		display: flex;
@@ -87,22 +87,17 @@
 		display: flex;
 		align-items: center;
 		padding-left: 0.625rem;
-		/* 使元素靠左对齐 */
 		box-sizing: border-box;
 		height: 100%;
-		/* 确保 entry-page 占满 swiper 的高度 */
 }
 .entry-item[data-v-1cf27b2a] {
 		width: 23%;
-		/* 调整宽度以适应每行四个图标 */
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		/* 上下居中 */
 		margin-right: 0.625rem;
 		height: 5rem;
-		/* 设置固定高度，配合 justify-content: center 实现上下居中 */
 }
 .entry-icon[data-v-1cf27b2a] {
 		width: 2.5rem;
@@ -126,7 +121,6 @@
 }
 
 	/* 信息中心 */
-	/* 容器 */
 .control_info-root[data-v-1cf27b2a] {
 		display: flex;
 		height: 150px;
@@ -219,4 +213,21 @@
 .control_car_text[data-v-1cf27b2a] {
 		display: flex;
 		flex-direction: column;
+}
+
+
+	/* 解释权区域 */
+.control_footer[data-v-1cf27b2a] {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+		box-sizing: border-box;
+}
+.footer-content[data-v-1cf27b2a] {
+		flex: 1;
+		overflow-y: auto;
+		background-color: #fff;
+		padding: 10px;
 }

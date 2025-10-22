@@ -20,6 +20,10 @@
     "Maps": {
       "coordType": "gcj02"
     },
+    "Geolocation": {},
+    "Barcode": {},
+    "Bluetooth": {},
+    "Camera": {},
     "UniNView": {
       "description": "UniNView原生渲染"
     }
@@ -84,8 +88,20 @@
           "gm": {}
         },
         "maps": {
-          "tencent": {
-            "key": "W66BZ-ADBC3-COB3F-YWZG4-MAVRO-IJBIM"
+          "amap": {
+            "name": "amaphNjDj25B",
+            "appkey_ios": "b1ca0630894a2808f84f2009e0366182",
+            "appkey_android": "b1ca0630894a2808f84f2009e0366182"
+          }
+        },
+        "geolocation": {
+          "amap": {
+            "name": "amaphNjDj25B",
+            "__platform__": [
+              "android"
+            ],
+            "appkey_ios": "",
+            "appkey_android": "b1ca0630894a2808f84f2009e0366182"
           }
         },
         "audio": {
