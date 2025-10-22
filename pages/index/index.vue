@@ -1,5 +1,4 @@
 <template>
-
 	<section class="control_container" :style="containerStyle" @touchmove.prevent>
 		<!-- 头部内容 -->
 		<view class="control_title" :style="navbarStyle">
@@ -9,7 +8,6 @@
 					<text style="font-size: 16px;">京AYU76G</text>
 				</view>
 				<view class="icons-container">
-					<image src="/static/scan-code.png" class="icon" />
 					<image src="/static/set_up.png" class="icon" />
 				</view>
 			</view>
@@ -96,18 +94,32 @@
 		</view>
 
 		<!-- 解释权区域 -->
-		<view class="control_footer">
+		<view class="control_footer" v-if="this.screenInfo.screenHeight>600">
 			<view class="footer-content">
-				<view>连接状态：当地图上蓝牙图标变蓝时车辆可操作</view>
-				<view>位置信息：当前显示为上一次蓝牙连接位置</view>
-				<view>操控区域：第一页功能支持全部车辆，第二页仅高配或商务车支持</view>
-				<view>电量信息：蓝牙连接后获取信息，且可用天数计算规则依照此次充电后个人用车习惯计算</view>
-				<view>感应模式：需在设置功能处执行蓝牙配对后方可开启（仅车主支持）</view>
+				<view class="footer-item">
+					<text class="footer-title">连接状态：</text>
+					<text class="footer-info">当地图上蓝牙图标呈蓝色高亮时，表示车辆已就绪，可进行操控</text>
+				</view>
+				<view class="footer-item">
+					<text class="footer-title">位置信息：</text>
+					<text class="footer-info">当前显示为车辆上一次蓝牙连接时的最后记录位置</text>
+				</view>
+				<view class="footer-item">
+					<text class="footer-title">操控区域：</text>
+					<text class="footer-info">基础控制功能适用于全部车型，高级功能仅支持高配版及商务车型</text>
+				</view>
+				<view class="footer-item">
+					<text class="footer-title">电量信息：</text>
+					<text class="footer-info">蓝牙连接后同步获取，可用天数预估基于本次充电后的实际用车习惯动态计算</text>
+				</view>
+				<view class="footer-item">
+					<text class="footer-title">感应模式：</text>
+					<text class="footer-info">需在设置中完成蓝牙配对后方可启用（仅限车主账户操作）</text>
+				</view>
+				<!-- 更多内容 -->
 			</view>
-			
 		</view>
 	</section>
-
 </template>
 
 <script>
@@ -512,5 +524,21 @@
 		overflow-y: auto;
 		background-color: #fff;
 		padding: 10px;
+	}
+
+	.footer-item {
+		color: #666;
+		line-height: 1.2;
+	}
+
+	.footer-title {
+		font-size: 12px;
+		font-weight: bold;
+		color: #333333;
+	}
+
+	.footer-info {
+		font-size: 12px;
+		color: #666;
 	}
 </style>

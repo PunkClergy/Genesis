@@ -52,11 +52,10 @@ if (uni.restoreGlobal) {
       });
     });
   };
-  const _imports_0 = "/static/scan-code.png";
-  const _imports_1 = "/static/set_up.png";
-  const _imports_2 = "/static/bluetooth.png";
-  const _imports_3 = "/static/gy.png";
-  const _imports_4 = "/static/clzx.png";
+  const _imports_0 = "/static/set_up.png";
+  const _imports_1 = "/static/bluetooth.png";
+  const _imports_2 = "/static/gy.png";
+  const _imports_3 = "/static/clzx.png";
   const _export_sfc = (sfc, props) => {
     const target = sfc.__vccOpts || sfc;
     for (const [key, val] of props) {
@@ -128,7 +127,7 @@ if (uni.restoreGlobal) {
           this.initialScreenInfo()
         ]);
       } catch (error) {
-        formatAppLog("error", "at pages/index/index.vue:183", "初始化失败:", error);
+        formatAppLog("error", "at pages/index/index.vue:195", "初始化失败:", error);
       } finally {
         this.isLoading = false;
       }
@@ -144,7 +143,7 @@ if (uni.restoreGlobal) {
         return pages;
       },
       containerStyle() {
-        formatAppLog("log", "at pages/index/index.vue:200", this.screenInfo);
+        formatAppLog("log", "at pages/index/index.vue:212", this.screenInfo);
         return {
           height: `${this.screenInfo.screenHeight || 667}px`
         };
@@ -162,7 +161,7 @@ if (uni.restoreGlobal) {
         try {
           this.screenInfo = await info_screen();
         } catch (error) {
-          formatAppLog("error", "at pages/index/index.vue:219", "[ScreenInfo] 获取屏幕信息失败:", error);
+          formatAppLog("error", "at pages/index/index.vue:231", "[ScreenInfo] 获取屏幕信息失败:", error);
         }
       },
       onSwiperChange(e) {
@@ -182,7 +181,7 @@ if (uni.restoreGlobal) {
             this.markers[0].callout.content = "你在这里";
           },
           fail: (err) => {
-            formatAppLog("error", "at pages/index/index.vue:239", "获取位置失败", err);
+            formatAppLog("error", "at pages/index/index.vue:251", "获取位置失败", err);
             uni.showToast({
               title: "定位失败",
               icon: "none"
@@ -191,7 +190,7 @@ if (uni.restoreGlobal) {
         });
       },
       onRegionChange(e) {
-        formatAppLog("log", "at pages/index/index.vue:248", "地图区域变化", e);
+        formatAppLog("log", "at pages/index/index.vue:260", "地图区域变化", e);
       }
     }
   };
@@ -222,10 +221,6 @@ if (uni.restoreGlobal) {
                 vue.createElementVNode("image", {
                   src: _imports_0,
                   class: "icon"
-                }),
-                vue.createElementVNode("image", {
-                  src: _imports_1,
-                  class: "icon"
                 })
               ])
             ]),
@@ -252,7 +247,7 @@ if (uni.restoreGlobal) {
           }, [
             vue.createElementVNode("cover-view", { class: "map_control" }, [
               vue.createElementVNode("cover-image", {
-                src: _imports_2,
+                src: _imports_1,
                 class: "map_image"
               })
             ])
@@ -358,7 +353,7 @@ if (uni.restoreGlobal) {
           vue.createElementVNode("view", { class: "control_info-right-container" }, [
             vue.createElementVNode("view", { class: "control_info-right-item" }, [
               vue.createElementVNode("image", {
-                src: _imports_3,
+                src: _imports_2,
                 class: "control_info-icon"
               }),
               vue.createElementVNode("view", { class: "control_car_text" }, [
@@ -368,7 +363,7 @@ if (uni.restoreGlobal) {
             ]),
             vue.createElementVNode("view", { class: "control_info-right-item" }, [
               vue.createElementVNode("image", {
-                src: _imports_4,
+                src: _imports_3,
                 class: "control_info-icon"
               }),
               vue.createElementVNode("text", { class: "control_info-title" }, "车辆中心")
@@ -376,15 +371,34 @@ if (uni.restoreGlobal) {
           ])
         ]),
         vue.createCommentVNode(" 解释权区域 "),
-        vue.createElementVNode("view", { class: "control_footer" }, [
+        this.screenInfo.screenHeight > 600 ? (vue.openBlock(), vue.createElementBlock("view", {
+          key: 0,
+          class: "control_footer"
+        }, [
           vue.createElementVNode("view", { class: "footer-content" }, [
-            vue.createElementVNode("view", null, "连接状态：当地图上蓝牙图标变蓝时车辆可操作"),
-            vue.createElementVNode("view", null, "位置信息：当前显示为上一次蓝牙连接位置"),
-            vue.createElementVNode("view", null, "操控区域：第一页功能支持全部车辆，第二页仅高配或商务车支持"),
-            vue.createElementVNode("view", null, "电量信息：蓝牙连接后获取信息，且可用天数计算规则依照此次充电后个人用车习惯计算"),
-            vue.createElementVNode("view", null, "感应模式：需在设置功能处执行蓝牙配对后方可开启（仅车主支持）")
+            vue.createElementVNode("view", { class: "footer-item" }, [
+              vue.createElementVNode("text", { class: "footer-title" }, "连接状态："),
+              vue.createElementVNode("text", { class: "footer-info" }, "当地图上蓝牙图标呈蓝色高亮时，表示车辆已就绪，可进行操控")
+            ]),
+            vue.createElementVNode("view", { class: "footer-item" }, [
+              vue.createElementVNode("text", { class: "footer-title" }, "位置信息："),
+              vue.createElementVNode("text", { class: "footer-info" }, "当前显示为车辆上一次蓝牙连接时的最后记录位置")
+            ]),
+            vue.createElementVNode("view", { class: "footer-item" }, [
+              vue.createElementVNode("text", { class: "footer-title" }, "操控区域："),
+              vue.createElementVNode("text", { class: "footer-info" }, "基础控制功能适用于全部车型，高级功能仅支持高配版及商务车型")
+            ]),
+            vue.createElementVNode("view", { class: "footer-item" }, [
+              vue.createElementVNode("text", { class: "footer-title" }, "电量信息："),
+              vue.createElementVNode("text", { class: "footer-info" }, "蓝牙连接后同步获取，可用天数预估基于本次充电后的实际用车习惯动态计算")
+            ]),
+            vue.createElementVNode("view", { class: "footer-item" }, [
+              vue.createElementVNode("text", { class: "footer-title" }, "感应模式："),
+              vue.createElementVNode("text", { class: "footer-info" }, "需在设置中完成蓝牙配对后方可启用（仅限车主账户操作）")
+            ]),
+            vue.createCommentVNode(" 更多内容 ")
           ])
-        ])
+        ])) : vue.createCommentVNode("v-if", true)
       ],
       36
       /* STYLE, NEED_HYDRATION */
